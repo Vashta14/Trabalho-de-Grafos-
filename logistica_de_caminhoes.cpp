@@ -11,6 +11,12 @@
 using namespace std;
 
 //classe que representa uma instancia
+
+struct route {
+    vector<int>* vertices;
+    int time;
+    int charge;
+};
 class arquivo {
     
     public:
@@ -43,7 +49,7 @@ class arquivo {
 
                 file>>aux;
                 vertices[i] = new float[8];
-                for(int j=0; j < 8; j++){
+                for(int j=0; j < 8; j++) {
                     file>>vertices[i][j];
                 }
             }
@@ -53,7 +59,7 @@ class arquivo {
             for (int i=0; i < size; i++) {
                 
                 travel_time[i] = new int[size];
-                for(int j=0; j < size; j++){
+                for(int j=0; j < size; j++) {
                     file>>travel_time[i][j];
                 }
             }
@@ -87,6 +93,8 @@ class arquivo {
         int get_size() {
             return size;
         }
+
+        void solution();
 
     private:
         //identificacaoo da instancia
@@ -124,7 +132,75 @@ class arquivo {
         //matriz que armazena o tempo de viagem entre cada par de vertices da instancia
         int** travel_time;
 
+        //retorna o tempo gasto em um vertice, caso o tempo seja maior que o limite retorna -1
+        int bigest(int time, int vert) {
+            if(time > vertices[vert][4]) {
+                logic_error over_time("O caminhao nao chega a tempo");
+                throw over_time;
+            }
+            else if( time < vertices[vert][3]) {
+                return vertices[vert][3]+vertices[vert][5];
+            }
+            else {
+                return time+vertices[vert][5];
+            }
+        }
+
 };
+
+//função para instanciar as rotas dos caminhões 
+void arquivo::solution() {
+    vector<route> routes;
+    //marca todos os vertices como false menos o 0
+    bool par[size];
+    for(int i = 1; i < size; i++) par[i] = false;
+    //percorre todos os vertices atribuindo os mesmos e seus pares a uma rota e os marcando com true
+    for(int i = 1; i < size; i++) {
+        //utiliza try catch para verificar que uma rota pode ser criada sem erros
+        try {
+            route new_route;
+            vector<int>* nodes = new vector<int>;
+            nodes->push_back(0);
+
+            //se o vertice ainda nao esta em uma rota e criada uma rota para ele e seu par
+            if((vertices[i][6] != 0) and (par[i] == true or par[int(vertices[i][6])])) {
+                nodes->push_back(vertices[i][6]);
+                nodes->push_back(i);
+                
+                new_route.time = bigest(travel_time[0][int(vertices[i][6])], vertices[i][6]);
+                new_route.time = bigest(new_route.time+travel_time[int(vertices[i][6])][i], i);
+                new_route.time = bigest(new_route.time+travel_time[i][0], 0);
+
+                par[i] = true;
+                par[int(vertices[i][6])] = true;
+            }
+            else if(par[i] == true or par[int(vertices[i][7])]) {
+                nodes->push_back(i);
+                nodes->push_back(vertices[i][7]);
+
+                new_route.time = bigest(travel_time[0][i], i); 
+                new_route.time = bigest(new_route.time+travel_time[i][int(vertices[i][7])], vertices[i][7]);
+                new_route.time = bigest(new_route.time+travel_time[int(vertices[i][7])][0], 0);
+                
+                par[i] = true;
+                par[int(vertices[i][7])] = true;
+            }
+            nodes->push_back(0);
+            new_route.vertices = nodes;
+            routes.push_back(new_route);
+        }
+        catch(logic_error& e) {
+            //nao cria nenhuma rota
+        }
+    }
+    
+    for(int i = 0; i < routes.size(); i++) {
+        for (int j = 0; j < routes[i].vertices->size(); j++){
+            cout<<(routes[i].vertices->at(j))<<' ';
+        }
+        cout<<endl<<routes[i].time<<endl;
+    }
+}
 
 /**
  * verifica se uma solucao esta correta
@@ -132,6 +208,7 @@ class arquivo {
  * @param solution solucao da isntancia 
  * @param trucks quantidade de caminhoes que foram utilizados na solucao
 */
+
 bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
     int time, weight, wanted, traveled = 0;
     int** travel_time = instance->get_time();
@@ -167,7 +244,7 @@ bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
         }
 
         //verifica se o caminhao nao passa por um vertice mais de uma vez
-        for (int j = 1; j < solution[i].size()-1; j++){
+        for (int j = 1; j < solution[i].size()-1; j++) {
             wanted = solution[i][j];
             for (int k = j+1; k < solution[i].size()-1; k++) {
                 if(solution[i][k] == wanted) {
@@ -182,13 +259,14 @@ bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
         for (int j = 0; j < solution[i].size(); j++) delivered[j] = false;
 
         //verifica se algum requisito e quebrado em alguma etapa da rota
-        for (int j = 1; j < solution[i].size(); j++){
+        for (int j = 1; j < solution[i].size(); j++) {
             actual = instance->get_vertice(solution[i][j]);
             
             //verifica se o tempo limite nao foi ultrapassado
             time += travel_time[solution[i][j-1]][solution[i][j]];
             if(time > actual[4]) {
                 cout<<"O caminhao "<<i<<" atrasou para chegar no vertice "<<solution[i][j]<<'!'<<endl;
+                delete[] delivered;
                 return false;
             }
             else if(time < actual[3]) {
@@ -199,12 +277,14 @@ bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
             weight += actual[2];
             if(weight > instance->get_capacity()) {
                 cout<<"O limite de carga do caminhao "<<i<<" foi ultrapassada no vertice "<<solution[i][j]<<'!'<<endl;
+                delete[] delivered;
                 return false;
             }
 
             //verifica se a relacao entre coleta e entrega esta correta
             if(actual[6] != 0 and !delivered[j]) {
                 cout<<"O caminhao "<<i<<" chegou no vertice "<<solution[i][j]<<" antes de do item do mesmo ser coletado!"<<endl;
+                delete[] delivered;
                 return false;
             }
             else if(actual[7] != 0) {
@@ -218,6 +298,7 @@ bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
                 }
                 if(wanted != 0) {
                     cout<<"O caminhao "<<i<<" nunca entrega o pedido coletado no vertice "<<solution[i][j]<<'!'<<endl;
+                    delete[] delivered;
                     return false;
                 }
             }
@@ -242,11 +323,9 @@ vector<int>* solution_rand(arquivo* instance, int trucks) {
         solution[i].push_back(0);
     }
 
-    for (int i = 0; i < trucks; i++)
-    {
+    for (int i = 0; i < trucks; i++) {
         cout<<"Caminhao "<<i<<": ";
-        for (int j = 0; j < solution[i].size(); j++)
-        {
+        for (int j = 0; j < solution[i].size(); j++) {
             cout<<solution[i][j]<<' ';
         }
         cout<<endl;
@@ -256,28 +335,33 @@ vector<int>* solution_rand(arquivo* instance, int trucks) {
 }
 
 int main() {
-    string name;
-    cout<<"Digite o nome de uma instancia: ";
-    cin>>name;
-    arquivo* instance = new arquivo(name);
-    cout<<"Arquivo acessado com sucesso!"<<endl;
+    
+    // string name;
+    // cout<<"Digite o nome de uma instancia: ";
+    // cin>>name;
+    // arquivo* instance = new arquivo(name);
+    // cout<<"Arquivo acessado com sucesso!"<<endl;
 
-    int continua, trucks;
-    vector<int>* solution;
-    srand(time(NULL));
-    do {
-        cout<<"Digite 1 para testar uma solucao aleatoria"<<endl;
-        cout<<"Digite 2 para sair"<<endl;
-        cin>>continua;
-        if(continua == 1) {
-            trucks = (rand() % (instance->get_size()/10)) +1, 
-            solution = solution_rand(instance, trucks);
+    // int continua, trucks;
+    // vector<int>* solution;
+    // srand(time(NULL));
+    // do {
+    //     cout<<"Digite 1 para testar uma solucao aleatoria"<<endl;
+    //     cout<<"Digite 2 para sair"<<endl;
+    //     cin>>continua;
+    //     if(continua == 1) {
+    //         trucks = (rand() % (instance->get_size()/10)) +1, 
+    //         solution = solution_rand(instance, trucks);
 
-            if(verificar_solucao(instance, solution, trucks)) {
-                cout<<"Solucao valida!"<<endl;
-            }
-        }
-    }while(continua == 1);
-     
+    //         if(verificar_solucao(instance, solution, trucks)) {
+    //             cout<<"Solucao valida!"<<endl;
+    //         }
+    //         delete[] solution;
+    //     }
+    // } while(continua == 1);
 
+    arquivo* instance = new arquivo("bar-n100-1.txt");
+    instance->solution();
+    
+    return 0;
 }
