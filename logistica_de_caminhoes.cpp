@@ -95,7 +95,7 @@ class archive {
             return size;
         }
 
-        void solution();
+        pair<vector<route>*, vector<route>*> solutions();
 
     private:
         //identificacaoo da instancia
@@ -154,7 +154,9 @@ class archive {
         }
         int find_nearest_neighbor(route* new_route, bool* visited, int vertex, int* time, int* charge);
         route nearest_neighbor(route* old_route);
-
+        vector<route>* first_solution(vector<route>* routes);
+        vector<route>* second_solution(vector<route>* routes);
+        void output(pair<vector<route>*, vector<route>*>* solutions);
 };
 
 // Encontra o índice do ponto mais próximo em relação a um ponto dado
@@ -163,7 +165,7 @@ int archive::find_nearest_neighbor(route* old_route, bool* visited, int vertex, 
     int new_time = __INT_MAX__; // = 2147483647
 
     // Procura o ponto mais próximo não visitado
-    for (int i = 1; i < old_route->vertices->size()-1; i++) {
+    for (int i = 1; i < int(old_route->vertices->size())-1; i++) {
         if (!visited[i] and bigest_charge((*charge)+vertices[old_route->vertices->at(i)][2])) {
             try {
                 int d = bigest_time((*time)+travel_time[vertex][i], old_route->vertices->at(i));
@@ -202,7 +204,7 @@ int archive::find_nearest_neighbor(route* old_route, bool* visited, int vertex, 
 // Algoritmo do Vizinho Mais Próximo
 route archive::nearest_neighbor(route* old_route) {
     bool visited[old_route->vertices->size()];
-    for (int i = 0; i < old_route->vertices->size(); i++) visited[i] = false;
+    for (int i = 0; i < int(old_route->vertices->size()); i++) visited[i] = false;
 
     route new_route;
     new_route.vertices = new vector<int>;
@@ -225,8 +227,100 @@ route archive::nearest_neighbor(route* old_route) {
     return new_route;
 }
 
+vector<route>* archive::first_solution(vector<route>* routes) {
+    bool its_possible = true;
+    vector<route>* old_routes = new vector<route>(*routes);
+    vector<route>* new_routes;
+
+    while(its_possible) {
+        new_routes = new vector<route>; 
+        int size = old_routes->size();
+        bool remuve_lest = false;
+        if(size%2 == 1) {
+            --size;
+            remuve_lest = true;
+        }
+        for (int j = 0; j < size; j+=2) {
+            try {
+                route* try_route = new route;
+                vector<int>* try_vertices = new vector<int>;
+                for (int k = 0; k < int((*old_routes)[j].vertices->size())-1; k++) try_vertices->push_back((*old_routes)[j].vertices->at(k));
+                for (int k = 1; k < int((*old_routes)[j+1].vertices->size()); k++) try_vertices->push_back((*old_routes)[j+1].vertices->at(k));
+                
+                try_route->vertices = try_vertices;
+                (*try_route) = nearest_neighbor(try_route);
+                new_routes->push_back(*try_route);
+                
+            }
+            catch(logic_error& e) {
+                route *route1 = new route, *route2 = new route;
+                
+                route1->vertices = new vector<int>(*(*old_routes)[j].vertices);
+                new_routes->push_back(*route1);
+                route2->vertices =new vector<int>(*(*old_routes)[j+1].vertices);
+                new_routes->push_back(*route2);
+            }
+        }
+        if(remuve_lest) {
+            route* lest_route = new route;
+            lest_route->vertices = new vector<int>(*(*old_routes).back().vertices);
+            new_routes->push_back(*lest_route);
+        }
+        if(int(new_routes->size()) == int(old_routes->size())) its_possible = false;
+        delete old_routes;
+        old_routes = new_routes;    
+    }
+    return old_routes;
+}
+
+vector<route>* archive::second_solution(vector<route>* routes) {
+    bool its_possible = true;
+    vector<route>* old_routes = new vector<route>(*routes);
+    vector<route>* new_routes;
+
+    while(its_possible) {
+        new_routes = new vector<route>; 
+        int size = old_routes->size();
+        bool remuve_lest = false;
+        if(size%2 == 1) {
+            --size;
+            remuve_lest = true;
+        }
+        for (int j = 0; j < size/2; j++) {
+            try {
+                route* try_route = new route;
+                vector<int>* try_vertices = new vector<int>;
+                for (int k = 0; k < int((*old_routes)[j].vertices->size())-1; k++) try_vertices->push_back((*old_routes)[j].vertices->at(k));
+                for (int k = 1; k < int((*old_routes)[size-j-1].vertices->size()); k++) try_vertices->push_back((*old_routes)[size-j-1].vertices->at(k));
+                
+                try_route->vertices = try_vertices;
+                (*try_route) = nearest_neighbor(try_route);
+                new_routes->push_back(*try_route);
+                
+            }
+            catch(logic_error& e) {
+                route *route1 = new route, *route2 = new route;
+                
+                route1->vertices = new vector<int>(*(*old_routes)[j].vertices);
+                new_routes->push_back(*route1);
+                route2->vertices =new vector<int>(*(*old_routes)[size-j-1].vertices);
+                new_routes->push_back(*route2);
+            }
+        }
+        if(remuve_lest) {
+            route* lest_route = new route;
+            lest_route->vertices = new vector<int>(*(*old_routes).back().vertices);
+            new_routes->push_back(*lest_route);
+        }
+        if(int(new_routes->size()) == int(old_routes->size())) its_possible = false;
+        delete old_routes;
+        old_routes = new_routes;    
+    }
+    return old_routes;
+}
+
 //função para instanciar as rotas dos caminhões 
-void archive::solution() {
+pair<vector<route>*, vector<route>*> archive::solutions() {
     vector<route>* routes = new vector<route>;
     //marca todos os vertices como false menos o 0
     bool par[size];
@@ -279,55 +373,61 @@ void archive::solution() {
         }
     }
 
-    sort(routes->begin(), routes->end(), [](route beg, route end){
+    sort(routes->begin(), routes->end(), [](route beg, route end) {
         if(beg.time > end.time) return true;
         else return false;
     });
 
-    bool its_possible = true;
-    vector<route>* old_routes;
-    vector<route>* new_routes;
+    vector<route>* solution1 = first_solution(routes);
+    vector<route>* solution2 = second_solution(routes);
 
-    while(its_possible) {
-        old_routes = routes;
-        new_routes = new vector<route>;        
-        for (int j = 0; j < old_routes->size(); j+=2) {
-            try {
-                route try_route;
-                vector<int> try_vertices;
-                
-                for (int k = 0; k < (*old_routes)[j].vertices->size()-1; k++) try_vertices.push_back((*old_routes)[j].vertices->at(k));
-                for (int k = 1; k < (*old_routes)[j+1].vertices->size(); k++) try_vertices.push_back((*old_routes)[j+1].vertices->at(k));
-                
-                try_route.vertices = &try_vertices;
-                try_route = nearest_neighbor(&try_route);
-                new_routes->push_back(try_route);
-            }
-            catch(logic_error& e) {
-                route route1, route2;
-                vector<int> vertices1, vertices2;
-                
-                for (int k = 0; k < (*old_routes)[j].vertices->size()-1; k++) vertices1.push_back((*old_routes)[j].vertices->at(k));
-                route1.vertices = &vertices1;
-                new_routes->push_back(route1);
+    pair<vector<route>*, vector<route>*> result;
+    result.first = solution1;
+    result.second = solution2;
+    output(&result);
+    return result;
+}
 
-                for (int k = 1; k < (*old_routes)[j+1].vertices->size(); k++) vertices2.push_back((*old_routes)[j+1].vertices->at(k));
-                route2.vertices = &vertices2;
-                new_routes->push_back(route2);
-            }
-        }
-        int new_size = new_routes->size(), size = routes->size();
-        if(new_size== size) its_possible = false;
-        delete routes;
-        routes = new_routes;    
+void archive::output(pair<vector<route>*, vector<route>*> *solutions) {
+    vector<route>* solution1 = solutions->first;
+    vector<route>* solution2 = solutions->second;
+
+    int trucks1 = solution1->size(), trucks2 = solution2->size(), time1 = 0, time2 = 0;
+    for (int i = 0; i < trucks1; i++) time1 += (*solution1)[i].time;
+    for (int i = 0; i < trucks2; i++) time2 += (*solution2)[i].time;
+
+    float deviation_m1, deviation_m2, deviation_c1, deviation_c2;
+    deviation_m1 = ((trucks1 - trucks2) / trucks2)*100;
+    deviation_m2 = ((trucks2 - trucks1) / trucks1)*100;
+    deviation_c1 = ((time1 - time2) / time2)*100;
+    deviation_c2 = ((time2 - time1) / time1)*100;
+
+    if(deviation_m1 < deviation_m2 or (deviation_m1 == deviation_m2 and deviation_c1 < deviation_c2)) {
+        solution2 = solutions->first;
+        solution1 = solutions->second;
     }
 
-    for(int i = 0; i < routes->size(); i++) {
-         for (int j = 0; j < (*routes)[i].vertices->size(); j++){
-            cout<<((*routes)[i].vertices->at(j))<<' ';
+    cout<<"Primeira solucao"<<endl;
+    cout<<"Caminhoes utilizados: "<<solution1->size()<<endl;
+    //cout<<"Custo: "<<time1<<endl;
+    for (int i = 0; i < int(solution1->size()); i++) {
+        for (int j = 0; j < int((*solution1)[i].vertices->size()); j++) {
+            cout<<(*solution1)[i].vertices->at(j)<<' ';
         }
-        cout<<endl<<(*routes)[i].time<<endl;
+        cout<<endl;
     }
+    cout<<"--------------------------------------------------------"<<endl;
+    cout<<"Melhor solucao"<<endl;
+    cout<<"Caminhoes utilizados: "<<solution2->size()<<endl;
+    //cout<<"Custo: "<<time2<<endl;
+    for (int i = 0; i < int(solution2->size()); i++) {
+        for (int j = 0; j < int((*solution2)[i].vertices->size()); j++) {
+            cout<<(*solution2)[i].vertices->at(j)<<' ';
+        }
+        cout<<endl;
+    }
+    
+
 }
 
 /**
@@ -337,16 +437,16 @@ void archive::solution() {
  * @param trucks quantidade de caminhoes que foram utilizados na solucao
 */
 
-bool verificar_solucao(archive* instance, vector<int>* solution, int trucks) {
-    int time, weight, wanted, traveled = 0;
+bool check_solution(archive* instance, vector<route>* solution) {
+    int time, weight, wanted, traveled = 0, trucks = solution->size();
     int** travel_time = instance->get_time();
     bool* delivered;
     float* actual;
-            
+    
             
     //verifica se a solucao alcanca todos os vertices da instancia
     for (int i = 0; i < trucks; i++) {
-        traveled += solution[i].size() - 2;
+        traveled += (*solution)[i].vertices->size() - 2;
     }
     traveled++;
     if(traveled < instance->get_size()) {
@@ -362,20 +462,20 @@ bool verificar_solucao(archive* instance, vector<int>* solution, int trucks) {
     for (int i = 0; i < trucks; i++) {
 
         //verifica se a rota comeca e termina no deposito
-        if(solution[i].front() != 0) {
+        if((*solution)[i].vertices->front() != 0) {
             cout<<"Ponto de origem do caminhao "<<i+1<<" nao e o deposito!"<<endl;
             return false;
         }
-        if(solution[i].back() != 0) {
+        if((*solution)[i].vertices->back() != 0) {
             cout<<"Ponto final do caminhao "<<i+1<<" nao e o deposito!"<<endl;
             return false;
         }
 
         //verifica se o caminhao nao passa por um vertice mais de uma vez
-        for (int j = 1; j < solution[i].size()-1; j++) {
-            wanted = solution[i][j];
-            for (int k = j+1; k < solution[i].size()-1; k++) {
-                if(solution[i][k] == wanted) {
+        for (int j = 1; j < int((*solution)[i].vertices->size())-1; j++) {
+            wanted = (*solution)[i].vertices->at(j);
+            for (int k = j+1; k < int((*solution)[i].vertices->size())-1; k++) {
+                if((*solution)[i].vertices->at(k) == wanted) {
                     cout<<"O caminhao "<<i<<" passa pelo vertice "<<wanted<<" mais de uma vez!"<<endl;
                     return false;
                 }
@@ -383,17 +483,17 @@ bool verificar_solucao(archive* instance, vector<int>* solution, int trucks) {
         }
 
         time = 0, weight = 0;
-        delivered = new bool[solution[i].size()];
-        for (int j = 0; j < solution[i].size(); j++) delivered[j] = false;
+        delivered = new bool[(*solution)[i].vertices->size()];
+        for (int j = 0; j < int((*solution)[i].vertices->size()); j++) delivered[j] = false;
 
         //verifica se algum requisito e quebrado em alguma etapa da rota
-        for (int j = 1; j < solution[i].size(); j++) {
-            actual = instance->get_vertice(solution[i][j]);
+        for (int j = 1; j < int((*solution)[i].vertices->size()); j++) {
+            actual = instance->get_vertice((*solution)[i].vertices->at(j));
             
             //verifica se o tempo limite nao foi ultrapassado
-            time += travel_time[solution[i][j-1]][solution[i][j]];
+            time += travel_time[(*solution)[i].vertices->at(j-1)][(*solution)[i].vertices->at(j)];
             if(time > actual[4]) {
-                cout<<"O caminhao "<<i<<" atrasou para chegar no vertice "<<solution[i][j]<<'!'<<endl;
+                cout<<"O caminhao "<<i<<" atrasou para chegar no vertice "<<(*solution)[i].vertices->at(j)<<'!'<<endl;
                 delete[] delivered;
                 return false;
             }
@@ -404,28 +504,28 @@ bool verificar_solucao(archive* instance, vector<int>* solution, int trucks) {
             //verifica se a capacidade nao e ultrapassada 
             weight += actual[2];
             if(weight > instance->get_capacity()) {
-                cout<<"O limite de carga do caminhao "<<i<<" foi ultrapassada no vertice "<<solution[i][j]<<'!'<<endl;
+                cout<<"O limite de carga do caminhao "<<i<<" foi ultrapassada no vertice "<<(*solution)[i].vertices->at(j)<<'!'<<endl;
                 delete[] delivered;
                 return false;
             }
 
             //verifica se a relacao entre coleta e entrega esta correta
             if(actual[6] != 0 and !delivered[j]) {
-                cout<<"O caminhao "<<i<<" chegou no vertice "<<solution[i][j]<<" antes de do item do mesmo ser coletado!"<<endl;
+                cout<<"O caminhao "<<i<<" chegou no vertice "<<(*solution)[i].vertices->at(j)<<" antes de do item do mesmo ser coletado!"<<endl;
                 delete[] delivered;
                 return false;
             }
             else if(actual[7] != 0) {
                 wanted = actual[7];
-                for (int k = j+1; k < solution[i].size(); k++) {
-                    if(solution[i][k] == wanted) {
+                for (int k = j+1; k < int((*solution)[i].vertices->size()); k++) {
+                    if((*solution)[i].vertices->at(k) == wanted) {
                         delivered[k] = true;
-                        k = solution[i].size();
+                        k = (*solution)[i].vertices->size();
                         wanted = 0;
                     }
                 }
                 if(wanted != 0) {
-                    cout<<"O caminhao "<<i<<" nunca entrega o pedido coletado no vertice "<<solution[i][j]<<'!'<<endl;
+                    cout<<"O caminhao "<<i<<" nunca entrega o pedido coletado no vertice "<<(*solution)[i].vertices->at(j)<<'!'<<endl;
                     delete[] delivered;
                     return false;
                 }
@@ -453,7 +553,7 @@ vector<int>* solution_rand(archive* instance, int trucks) {
 
     for (int i = 0; i < trucks; i++) {
         cout<<"Caminhao "<<i<<": ";
-        for (int j = 0; j < solution[i].size(); j++) {
+        for (int j = 0; j < int(solution[i].size()); j++) {
             cout<<solution[i][j]<<' ';
         }
         cout<<endl;
@@ -481,16 +581,23 @@ int main() {
     //         trucks = (rand() % (instance->get_size()/10)) +1, 
     //         solution = solution_rand(instance, trucks);
 
-    //         if(verificar_solucao(instance, solution, trucks)) {
+    //         if(check_solution(instance, solution, trucks)) {
     //             cout<<"Solucao valida!"<<endl;
     //         }
     //         delete[] solution;
     //     }
     // } while(continua == 1);
 
-    archive* instance = new archive("bar-n100-1.txt");
-    instance->solution();
+    archive* instance = new archive("ber-n100-4.txt");
+    pair<vector<route>*, vector<route>*> solutions = instance->solutions();
     
+    if(check_solution(instance, solutions.first)) {
+        cout<<"funfou 1"<<endl;
+    }
+    if(check_solution(instance, solutions.second)) {
+        cout<<"AEEEEEE POOOORRRA"<<endl;
+    }
+
     delete instance;
     
     return 0;
