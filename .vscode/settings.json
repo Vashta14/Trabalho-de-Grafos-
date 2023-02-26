@@ -6,6 +6,8 @@
         "initializer_list": "cpp",
         "utility": "cpp",
         "new": "cpp",
-        "stdexcept": "cpp"
+        "stdexcept": "cpp",
+        "random": "cpp",
+        "limits": "cpp"
     }
 }

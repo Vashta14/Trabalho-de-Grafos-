@@ -17,7 +17,8 @@ struct route {
     int time;
     int charge;
 };
-class arquivo {
+
+class archive {
     
     public:
 
@@ -25,7 +26,7 @@ class arquivo {
          * aloca as informacoes de uma instancia nesse objeto
          * @param file_name nome do arquivo da instancia
         */
-        arquivo(string file_name) {
+        archive(string file_name) {
             string aux;
             ifstream file("instances/"+file_name);
             file>>aux>>name;
@@ -67,7 +68,7 @@ class arquivo {
         }
 
         //destrutor
-        ~arquivo() {
+        ~archive() {
             for(int i=0; i < size; i++) {
                 delete[] vertices[i];
                 delete[] travel_time[i];
@@ -132,27 +133,104 @@ class arquivo {
         //matriz que armazena o tempo de viagem entre cada par de vertices da instancia
         int** travel_time;
 
-        //retorna o tempo gasto em um vertice, caso o tempo seja maior que o limite retorna -1
-        int bigest(int time, int vert) {
+        //retorna o tempo gasto em um vertice, caso o tempo seja maior que o limite retorna erro de logica
+        int bigest_time(int time, int vert) {
             if(time > vertices[vert][4]) {
                 logic_error over_time("O caminhao nao chega a tempo");
                 throw over_time;
             }
-            else if( time < vertices[vert][3]) {
+            else if(time < vertices[vert][3]) {
                 return vertices[vert][3]+vertices[vert][5];
             }
             else {
                 return time+vertices[vert][5];
             }
         }
+        bool bigest_charge(int charge) {
+            if(charge < capacity)
+                return true;
+            else
+                return false;
+        }
+        int find_nearest_neighbor(route* new_route, bool* visited, int vertex, int* time, int* charge);
+        route nearest_neighbor(route* old_route);
 
 };
 
+// Encontra o índice do ponto mais próximo em relação a um ponto dado
+int archive::find_nearest_neighbor(route* old_route, bool* visited, int vertex, int* time, int* charge) {
+    int near = -1;
+    int new_time = __INT_MAX__; // = 2147483647
+
+    // Procura o ponto mais próximo não visitado
+    for (int i = 1; i < old_route->vertices->size()-1; i++) {
+        if (!visited[i] and bigest_charge((*charge)+vertices[old_route->vertices->at(i)][2])) {
+            try {
+                int d = bigest_time((*time)+travel_time[vertex][i], old_route->vertices->at(i));
+                if(vertices[old_route->vertices->at(i)][6] != 0) {
+                    auto it = find(old_route->vertices->begin(), old_route->vertices->end(), vertices[old_route->vertices->at(i)][6]);
+                    if (it != old_route->vertices->end()) {
+                        int pair = it - old_route->vertices->begin();
+                        if (d < new_time and visited[pair]) {
+                            new_time = d;
+                            near = i;
+                        }
+                    }
+                }
+                else {
+                    if (d < new_time) {
+                        new_time = d;
+                        near = i;
+                    }
+                }
+                
+            }
+            catch(logic_error &e){
+                //nada acontece
+            }
+        }
+    }
+    if(near == -1) {
+        logic_error not_find("Nenhum valor encontrado");
+        throw not_find;
+    }
+    (*charge)+= vertices[old_route->vertices->at(near)][2];
+    (*time) = new_time;
+    return near;
+}
+
+// Algoritmo do Vizinho Mais Próximo
+route archive::nearest_neighbor(route* old_route) {
+    bool visited[old_route->vertices->size()];
+    for (int i = 0; i < old_route->vertices->size(); i++) visited[i] = false;
+
+    route new_route;
+    new_route.vertices = new vector<int>;
+    new_route.time = 0;
+    new_route.charge = 0;
+    // Escolhe um ponto inicial aleatório e adiciona à rota
+    int vertex = 0;
+    visited[vertex] = true;
+    new_route.vertices->push_back(0);
+    // Itera até que todos os pontos tenham sido visitados
+    while (new_route.vertices->size() < old_route->vertices->size()-1) {
+        // Encontra o ponto mais próximo não visitado e adiciona à rota
+        vertex = find_nearest_neighbor(old_route, visited, vertex, &new_route.time, &new_route.charge);
+        new_route.vertices->push_back(old_route->vertices->at(vertex));
+        
+        visited[vertex] = true;
+    }
+    new_route.vertices->push_back(0);
+
+    return new_route;
+}
+
 //função para instanciar as rotas dos caminhões 
-void arquivo::solution() {
-    vector<route> routes;
+void archive::solution() {
+    vector<route>* routes = new vector<route>;
     //marca todos os vertices como false menos o 0
     bool par[size];
+    par[0] = true;
     for(int i = 1; i < size; i++) par[i] = false;
     //percorre todos os vertices atribuindo os mesmos e seus pares a uma rota e os marcando com true
     for(int i = 1; i < size; i++) {
@@ -163,42 +241,92 @@ void arquivo::solution() {
             nodes->push_back(0);
 
             //se o vertice ainda nao esta em uma rota e criada uma rota para ele e seu par
-            if((vertices[i][6] != 0) and (par[i] == true or par[int(vertices[i][6])])) {
+            if((vertices[i][6] != 0) and (!par[i] and !par[int(vertices[i][6])])) {
                 nodes->push_back(vertices[i][6]);
                 nodes->push_back(i);
                 
-                new_route.time = bigest(travel_time[0][int(vertices[i][6])], vertices[i][6]);
-                new_route.time = bigest(new_route.time+travel_time[int(vertices[i][6])][i], i);
-                new_route.time = bigest(new_route.time+travel_time[i][0], 0);
+                new_route.time = bigest_time(travel_time[0][int(vertices[i][6])], vertices[i][6]);
+                new_route.time = bigest_time(new_route.time+travel_time[int(vertices[i][6])][i], i);
+                new_route.time = bigest_time(new_route.time+travel_time[i][0], 0);
+
+                nodes->push_back(0);
+                new_route.vertices = nodes;
+                routes->push_back(new_route);
 
                 par[i] = true;
                 par[int(vertices[i][6])] = true;
+                
             }
-            else if(par[i] == true or par[int(vertices[i][7])]) {
+            else if(!par[i] or !par[int(vertices[i][7])]) {
                 nodes->push_back(i);
                 nodes->push_back(vertices[i][7]);
 
-                new_route.time = bigest(travel_time[0][i], i); 
-                new_route.time = bigest(new_route.time+travel_time[i][int(vertices[i][7])], vertices[i][7]);
-                new_route.time = bigest(new_route.time+travel_time[int(vertices[i][7])][0], 0);
-                
+                new_route.time = bigest_time(travel_time[0][i], i); 
+                new_route.time = bigest_time(new_route.time+travel_time[i][int(vertices[i][7])], vertices[i][7]);
+                new_route.time = bigest_time(new_route.time+travel_time[int(vertices[i][7])][0], 0);
+
+                nodes->push_back(0);
+                new_route.vertices = nodes;
+                routes->push_back(new_route);
+
                 par[i] = true;
                 par[int(vertices[i][7])] = true;
             }
-            nodes->push_back(0);
-            new_route.vertices = nodes;
-            routes.push_back(new_route);
+            
         }
         catch(logic_error& e) {
             //nao cria nenhuma rota
         }
     }
-    
-    for(int i = 0; i < routes.size(); i++) {
-        for (int j = 0; j < routes[i].vertices->size(); j++){
-            cout<<(routes[i].vertices->at(j))<<' ';
+
+    sort(routes->begin(), routes->end(), [](route beg, route end){
+        if(beg.time > end.time) return true;
+        else return false;
+    });
+
+    bool its_possible = true;
+    vector<route>* old_routes;
+    vector<route>* new_routes;
+
+    while(its_possible) {
+        old_routes = routes;
+        new_routes = new vector<route>;        
+        for (int j = 0; j < old_routes->size(); j+=2) {
+            try {
+                route try_route;
+                vector<int> try_vertices;
+                
+                for (int k = 0; k < (*old_routes)[j].vertices->size()-1; k++) try_vertices.push_back((*old_routes)[j].vertices->at(k));
+                for (int k = 1; k < (*old_routes)[j+1].vertices->size(); k++) try_vertices.push_back((*old_routes)[j+1].vertices->at(k));
+                
+                try_route.vertices = &try_vertices;
+                try_route = nearest_neighbor(&try_route);
+                new_routes->push_back(try_route);
+            }
+            catch(logic_error& e) {
+                route route1, route2;
+                vector<int> vertices1, vertices2;
+                
+                for (int k = 0; k < (*old_routes)[j].vertices->size()-1; k++) vertices1.push_back((*old_routes)[j].vertices->at(k));
+                route1.vertices = &vertices1;
+                new_routes->push_back(route1);
+
+                for (int k = 1; k < (*old_routes)[j+1].vertices->size(); k++) vertices2.push_back((*old_routes)[j+1].vertices->at(k));
+                route2.vertices = &vertices2;
+                new_routes->push_back(route2);
+            }
         }
-        cout<<endl<<routes[i].time<<endl;
+        int new_size = new_routes->size(), size = routes->size();
+        if(new_size== size) its_possible = false;
+        delete routes;
+        routes = new_routes;    
+    }
+
+    for(int i = 0; i < routes->size(); i++) {
+         for (int j = 0; j < (*routes)[i].vertices->size(); j++){
+            cout<<((*routes)[i].vertices->at(j))<<' ';
+        }
+        cout<<endl<<(*routes)[i].time<<endl;
     }
 }
 
@@ -209,7 +337,7 @@ void arquivo::solution() {
  * @param trucks quantidade de caminhoes que foram utilizados na solucao
 */
 
-bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
+bool verificar_solucao(archive* instance, vector<int>* solution, int trucks) {
     int time, weight, wanted, traveled = 0;
     int** travel_time = instance->get_time();
     bool* delivered;
@@ -309,7 +437,7 @@ bool verificar_solucao(arquivo* instance, vector<int>* solution, int trucks) {
     return true;
 }
 
-vector<int>* solution_rand(arquivo* instance, int trucks) {
+vector<int>* solution_rand(archive* instance, int trucks) {
     int aux;
     vector<int>* solution = new vector<int>[trucks];
     for (int i = 0; i < trucks; i++) {
@@ -360,8 +488,10 @@ int main() {
     //     }
     // } while(continua == 1);
 
-    arquivo* instance = new arquivo("bar-n100-1.txt");
+    archive* instance = new archive("bar-n100-1.txt");
     instance->solution();
+    
+    delete instance;
     
     return 0;
 }
