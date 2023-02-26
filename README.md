@@ -1,7 +1,7 @@
 
 # Trabalho de Grafos
 
-    Trabalho realizado para a matéria de Algoritmos em Grafos, onde  problema consiste em encontrar uma rota ótima para atender um conjunto de clientes com demandas diferentes, considerando a capacidade dos veículos, as janelas de tempo, a precedência de coleta e entrega para a minimização do custo total. Esse problema é comum em empresas que precisam otimizar suas rotas de entrega para reduzir os custos logísticos, que tiveram a sua necessidade aumentada durante a pandemia, em que houve um aumento significativo de compras online.
+Trabalho realizado para a matéria de Algoritmos em Grafos, onde  problema consiste em encontrar uma rota ótima para atender um conjunto de clientes com demandas diferentes, considerando a capacidade dos veículos, as janelas de tempo, a precedência de coleta e entrega para a minimização do custo total. Esse problema é comum em empresas que precisam otimizar suas rotas de entrega para reduzir os custos logísticos, que tiveram a sua necessidade aumentada durante a pandemia, em que houve um aumento significativo de compras online.
 
 
 ## UNIVERSIDADE FEDERAL DE LAVRAS
@@ -12,9 +12,9 @@ Prof. Mayron César de O. Moreira
 
 ## Autores
 
-    - Gilson dos Santos Júnior - 14A - [@RATZogun](https://github.com/RATZogun)
-    - Gustavo	Henrique Marques Magalhães - 14A - [@Gustavohmmagalhaes](https://github.com/Gustavohmmagalhaes)
-    - Raul Souza Lima - 14A - [@Vashta14](https://github.com/Vashta14)
+- Gilson dos Santos Júnior - 14A - [@RATZogun](https://github.com/RATZogun)
+- Gustavo	Henrique Marques Magalhães - 14A - [@Gustavohmmagalhaes](https://github.com/Gustavohmmagalhaes)
+- Raul Souza Lima - 14A - [@Vashta14](https://github.com/Vashta14)
 
 
 ## Estrutura
@@ -30,9 +30,7 @@ Para a resolução do problema foi definido um sistema de classe utilizado para 
 7: o par de entrega se id for uma coleta e 0 caso contrário.  
 
 - find_nearest_neighbor: recebe como parâmetro um ponto e procura o índice do ponto mais próximo não visitado.  
-- nearest_neighbor: executa o algoritmo do vizinho mais próximo;
-    -escolhe um ponto inicial aleatório e adiciona à rota;
-    -chama a função find_nearest_neighbor passando esse ponto aleatório.
+- nearest_neighbor: executa o algoritmo do vizinho mais próximo; escolhe um ponto inicial aleatório e adiciona à rota; chama a função find_nearest_neighbor passando esse ponto aleatório.
 - first_solution:
 - second_solution:
 - solutions:
