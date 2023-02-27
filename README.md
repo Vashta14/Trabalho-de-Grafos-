@@ -30,7 +30,7 @@ Para a resolução do problema foi definido um sistema de classe utilizado para 
 7: o par de entrega se id for uma coleta e 0 caso contrário.  
 
 - find_nearest_neighbor: recebe como parâmetro um ponto e procura o índice do ponto mais próximo não visitado.  
-- nearest_neighbor: executa o algoritmo do vizinho mais próximo; escolhe um ponto inicial aleatório e adiciona à rota; chama a função find_nearest_neighbor passando esse ponto aleatório.
+- nearest_neighbor: executa o algoritmo do vizinho mais próximo; defino 0 o ponto inicial e adiciona à rota; chama a função find_nearest_neighbor passando esse ponto aleatório.
 - first_solution: tenta concatenar a cada duas rotas enquanto as condições não sejam excedidas.
 - second_solution: tenta concatenar a primeira e última rota de um vetor de rotas ordenado decrescente.
 - solutions: atribui as rotas dos caminhões; chama a função output passando a rota atribuida.
