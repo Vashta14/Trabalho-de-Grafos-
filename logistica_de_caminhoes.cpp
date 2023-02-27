@@ -609,10 +609,10 @@ int main() {
     pair<vector<route>*, vector<route>*> solutions = instance->solutions();
     
     if(check_solution(instance, solutions.first)) {
-        //cout<<"funfou 1"<<endl;
+        //cout<<"Funcionou 1"<<endl;
     }
     if(check_solution(instance, solutions.second)) {
-        //cout<<"AEEEEEE POOOORRRA"<<endl;
+        //cout<<"Funcionou 2"<<endl;
     }
 
     delete instance;
