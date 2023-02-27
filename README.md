@@ -1,7 +1,7 @@
 
 # Trabalho de Grafos
 
-Trabalho realizado para a matéria de Algoritmos em Grafos, onde  problema consiste em encontrar uma rota ótima para atender um conjunto de clientes com demandas diferentes, considerando a capacidade dos veículos, as janelas de tempo, a precedência de coleta e entrega para a minimização do custo total. Esse problema é comum em empresas que precisam otimizar suas rotas de entrega para reduzir os custos logísticos, que tiveram a sua necessidade aumentada durante a pandemia, em que houve um aumento significativo de compras online.
+Trabalho realizado para a matéria de Algoritmos em Grafos, onde  problema consiste em encontrar uma rota heurística para atender um conjunto de clientes com demandas diferentes, considerando a capacidade dos veículos, as janelas de tempo, a precedência de coleta e entrega para a minimização do custo total. Esse problema é comum em empresas que precisam otimizar suas rotas de entrega para reduzir os custos logísticos, que tiveram a sua necessidade aumentada durante a pandemia, em que houve um aumento significativo de compras online.
 
 
 ## UNIVERSIDADE FEDERAL DE LAVRAS
@@ -34,10 +34,11 @@ Para a resolução do problema foi definido um sistema de classe utilizado para 
 - first_solution: 
 - second_solution:
 - solutions: atribui as rotas dos caminhões; chama a função output passando a rota atribuida.
+- output: calcula o desvio para definir a melhor solução gerada; organiza um saída pra o terminal com as duas soluções obtidas e o número de caminhões gasto em cada uma delas.
 - check_solution: utiliza de várias verificações para garantir que a solução encontrada é uma solução válida, respeitando as condições pré-impostas de precedência de coleta e entrega, origem e horário de serviço, janelas de tempo, obrigatoriedade e exclusividade de visita, atendimento de pedido e capacidade de veículo.
 - solution_rand: gera uma solução aleatória para fins de depuração do código.
 
 ## Exemplo
 
-A imagem a seguir exemplifica a ideia de funcionamento seguida no desenvolvimento desse código.
+A imagem a seguir exemplifica a ideia geral de funcionamento seguida no desenvolvimento desse código.
 ![App Screenshot](https://i.imgur.com/eNwsZu6.png)

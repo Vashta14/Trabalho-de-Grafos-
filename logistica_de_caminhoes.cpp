@@ -567,35 +567,52 @@ int main() {
     // string name;
     // cout<<"Digite o nome de uma instancia: ";
     // cin>>name;
-    // arquivo* instance = new arquivo(name);
+    // arquivo* instance = new archive(name);
     // cout<<"Arquivo acessado com sucesso!"<<endl;
 
     // int continua, trucks;
+    // pair<vector<route>*, vector<route>*> solutions = instance->solutions(); 
     // vector<int>* solution;
     // srand(time(NULL));
     // do {
     //     cout<<"Digite 1 para testar uma solucao aleatoria"<<endl;
-    //     cout<<"Digite 2 para sair"<<endl;
+    //     cout<<"Digite 2 para testar a instancia"<<endl;
+    //     cout<<"Digite 3 para sair"<<endl;
     //     cin>>continua;
     //     if(continua == 1) {
     //         trucks = (rand() % (instance->get_size()/10)) +1, 
     //         solution = solution_rand(instance, trucks);
-
+    //
     //         if(check_solution(instance, solution, trucks)) {
     //             cout<<"Solucao valida!"<<endl;
     //         }
-    //         delete[] solution;
+    //     else if(continua == 2) {
+    //          if(check_solution(instance, solutions.first)) {
+    //              cout<<" "<<endl;
+    //          }
+    //          if(check_solution(instance, solutions.second)) {
+    //              cout<<" "<<endl;
+    //          }
     //     }
-    // } while(continua == 1);
+    //
+    //         delete[] solution;
+    //         delete instance;
+    //     }
+    // } while(continua != 3);
+    
+    string name;
+    cout<<"Digite o nome de uma instancia: ";
+    cin>>name;
+    archive* instance = new archive(name);
+    cout<<"Arquivo acessado com sucesso!"<<endl;
 
-    archive* instance = new archive("ber-n100-4.txt");
     pair<vector<route>*, vector<route>*> solutions = instance->solutions();
     
     if(check_solution(instance, solutions.first)) {
-        cout<<"funfou 1"<<endl;
+        //cout<<"funfou 1"<<endl;
     }
     if(check_solution(instance, solutions.second)) {
-        cout<<"AEEEEEE POOOORRRA"<<endl;
+        //cout<<"AEEEEEE POOOORRRA"<<endl;
     }
 
     delete instance;
