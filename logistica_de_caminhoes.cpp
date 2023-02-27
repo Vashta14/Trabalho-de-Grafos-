@@ -210,7 +210,6 @@ route archive::nearest_neighbor(route* old_route) {
     new_route.vertices = new vector<int>;
     new_route.time = 0;
     new_route.charge = 0;
-    // Escolhe um ponto inicial aleatório e adiciona à rota
     int vertex = 0;
     visited[vertex] = true;
     new_route.vertices->push_back(0);
