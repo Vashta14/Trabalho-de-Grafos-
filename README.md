@@ -31,9 +31,9 @@ Para a resolução do problema foi definido um sistema de classe utilizado para 
 
 - find_nearest_neighbor: recebe como parâmetro um ponto e procura o índice do ponto mais próximo não visitado.  
 - nearest_neighbor: executa o algoritmo do vizinho mais próximo; escolhe um ponto inicial aleatório e adiciona à rota; chama a função find_nearest_neighbor passando esse ponto aleatório.
-- first_solution:
+- first_solution: 
 - second_solution:
-- solutions:
+- solutions: atribui as rotas dos caminhões; chama a função output passando a rota atribuida.
 - check_solution: utiliza de várias verificações para garantir que a solução encontrada é uma solução válida, respeitando as condições pré-impostas de precedência de coleta e entrega, origem e horário de serviço, janelas de tempo, obrigatoriedade e exclusividade de visita, atendimento de pedido e capacidade de veículo.
 - solution_rand: gera uma solução aleatória para fins de depuração do código.
 

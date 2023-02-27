@@ -235,10 +235,10 @@ vector<route>* archive::first_solution(vector<route>* routes) {
     while(its_possible) {
         new_routes = new vector<route>; 
         int size = old_routes->size();
-        bool remuve_lest = false;
+        bool remove_last = false;
         if(size%2 == 1) {
             --size;
-            remuve_lest = true;
+            remove_last = true;
         }
         for (int j = 0; j < size; j+=2) {
             try {
@@ -261,10 +261,10 @@ vector<route>* archive::first_solution(vector<route>* routes) {
                 new_routes->push_back(*route2);
             }
         }
-        if(remuve_lest) {
-            route* lest_route = new route;
-            lest_route->vertices = new vector<int>(*(*old_routes).back().vertices);
-            new_routes->push_back(*lest_route);
+        if(remove_last) {
+            route* last_route = new route;
+            last_route->vertices = new vector<int>(*(*old_routes).back().vertices);
+            new_routes->push_back(*last_route);
         }
         if(int(new_routes->size()) == int(old_routes->size())) its_possible = false;
         delete old_routes;
@@ -281,10 +281,10 @@ vector<route>* archive::second_solution(vector<route>* routes) {
     while(its_possible) {
         new_routes = new vector<route>; 
         int size = old_routes->size();
-        bool remuve_lest = false;
+        bool remove_last = false;
         if(size%2 == 1) {
             --size;
-            remuve_lest = true;
+            remove_last = true;
         }
         for (int j = 0; j < size/2; j++) {
             try {
@@ -307,10 +307,10 @@ vector<route>* archive::second_solution(vector<route>* routes) {
                 new_routes->push_back(*route2);
             }
         }
-        if(remuve_lest) {
-            route* lest_route = new route;
-            lest_route->vertices = new vector<int>(*(*old_routes).back().vertices);
-            new_routes->push_back(*lest_route);
+        if(remove_last) {
+            route* last_route = new route;
+            last_route->vertices = new vector<int>(*(*old_routes).back().vertices);
+            new_routes->push_back(*last_route);
         }
         if(int(new_routes->size()) == int(old_routes->size())) its_possible = false;
         delete old_routes;
